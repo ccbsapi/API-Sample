@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CCBSAPI HTML Sample</title>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <input type="button" value="実行" onclick="CCBSAPI()"><br>
+    <textarea id="input" placeholder="input here"></textarea>
+    <textarea id="output" placeholder="output here"></textarea>
+    <script>
+      function CCBSAPI(){
+        try{
+          var input=document.getElementById('input').value;
+          var xhr=new XMLHttpRequest();
+          xhr.open("POST","http://ccbsapi.php.xdomain.jp/v2/");
+          xhr.setRequestHeader('Content-Type','application/json');
+          xhr.send(JSON.stringify({'i':[{type:'text',text:input}]}));
+          xhr.onreadystatechange=function(){
+            if(xhr.readyState==4){
+              var response=JSON.parse(xhr.responseText);
+              if(response.error)throw "エラー";
+              var data=response.data[0];
+              var f=function(val){
+                if(val.type=="object"){
+                  return val.content.map(function(v){
+                    return f(v);
+                  }).join('\n');
+                }
+                if(val.type!="text")val.content="["+val.type+" data]";
+                return val.content
+              };
+              document.getElementById('output').value=f(data);
+            }
+          }
+        }catch(e){
+          alert(e.toString());
+        }
+      }
+    </script>
+  </body>
+</html>
